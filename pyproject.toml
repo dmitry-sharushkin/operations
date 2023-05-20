@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "bank-operations"
+version = "0.1.0"
+description = ""
+authors = ["dmitry-sharushkin <dimasharushkin@gmail.com>"]
+readme = "README.md"
+packages = [{include = "bank_operations"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.30.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
