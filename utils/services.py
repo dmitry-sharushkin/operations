@@ -1,59 +1,55 @@
 import json
-import datetime
-import os.path
-
-JSON_DATA_PATH = "../json_data/operations.json"
+from datetime import datetime
 
 
-def load_json(JSON_DATA_PATH):
+def load_json(json_data_path):
     """Открывает json-файл"""
-    with open(JSON_DATA_PATH, encoding="utf8") as f:
+    with open(json_data_path, 'r', encoding="utf8") as f:
         json_dict = json.load(f)
     return json_dict
 
 
-def get_last_operations(json_dict):
-    operations = [op for op in json_dict if op['state'] == 'EXECUTED']
-    last_operations = sorted(operations, key=lambda op: op['date'], reverse=True)[:5]
-    return last_operations
+def date_format(data_str: str, formatted_data: str = '%d.%m.%Y %H:%M:%S'):
+    """Правильный формат времени"""
+    parsed = datetime.strptime(data_str, '%Y-%m-%dT%H:%M:%S.%f')
+    formatted_data = parsed.strftime(formatted_data)
+    return formatted_data
 
 
-def format_operation(operation):
+def get_last_operations(sort_list: list) -> list:
+    """Пять последних выполненных операций операций"""
+    operations = [op for op in sort_list if op['state'] == 'EXECUTED']
+    last_five_operations = operations[:5]
+    return last_five_operations
+
+
+def sort_by_date(json_dict=None):
+    """Сортирует список"""
+    sort_list = sorted(json_dict, key=lambda x: x.get("date"), reverse=True)
+    return sort_list
+
+
+def mask_card_number(operation_credintials: str) -> str:
     """
-       Форматирует операцию в строку вида:
-       <дата перевода> <описание перевода>
-       <откуда> -> <куда>
-       <сумма перевода> <валюта>
-       """
-    date = datetime.fromisoformat(operation['date'][:-1]).strftime('%d.%m.%Y')
-    description = operation['description']
-    from_ = mask_card_number(operation['from'].split()[-1]) if 'card' in operation['from'].lower() else operation[
-        'from']
-    to = mask_account_number(operation['to'].split()[-1]) if 'счет' in operation['to'].lower() else operation['to']
-    amount = float(operation['operationAmount']['amount'])
-    currency = operation['operationAmount']['currency']['name']
-    return f"{date} {description}\n{from_} -> {to}\n{amount:.2f} {currency}"
+    Заменяет номер карты и номер счета на маску
+    """
+    if operation_credintials:
+        credintials_name = " ".join(operation_credintials.split(" ")[:-1])
+        credintials_number = operation_credintials.split(" ")[-1]
+
+        if len(credintials_number) == 16:
+            number_hide = credintials_number[:6] + "*" * 6 + credintials_number[:-4]
+            number_sep = [number_hide[i:i + 4] for i in range(0, len(credintials_number), 4)]
+            return f'{credintials_name} {" ".join(number_sep)}'
+
+        elif len(credintials_number) == 20:
+            return f'{credintials_name} {credintials_number.replace(credintials_number[:-4], "**")}'
+
+    return "N/A"
 
 
-def mask_card_number(card_number):
-    """
-    Заменяет номер карты на маску вида XXXX XX ** XXXX
-    """
-    return f"{card_number[:6]} XX ** {card_number[-4:]}"
-
-
-def mask_account_number(account_number):
-    """
-    Заменяет номер счета на маску вида **XXXX
-    """
-    return f"**{account_number[-4:]}"
-
-
-def print_last_operations(data, n=5):
-    """
-    Выводит на экран список из n последних выполненных операций
-    """
-    last_operations = get_last_operations(data, n)
-    for operation in last_operations:
-        print(format_operation(operation))
-        print()
+def print_info(operations):
+    """Вывод"""
+    for op in operations:
+        print(f"{date_format(op['date'])} {op['description']}\n"
+              f"{mask_card_number(op.get('from'))} -> {mask_card_number(op.get('to'))}\n")
