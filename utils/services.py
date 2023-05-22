@@ -38,7 +38,7 @@ def mask_card_number(operation_credintials: str) -> str:
         credintials_number = operation_credintials.split(" ")[-1]
 
         if len(credintials_number) == 16:
-            number_hide = credintials_number[:6] + "*" * 6 + credintials_number[:-4]
+            number_hide = credintials_number[:6] +  "*" * 6 + credintials_number[:-4]
             number_sep = [number_hide[i:i + 4] for i in range(0, len(credintials_number), 4)]
             return f'{credintials_name} {" ".join(number_sep)}'
 
@@ -52,4 +52,5 @@ def print_info(operations):
     """Вывод"""
     for op in operations:
         print(f"{date_format(op['date'])} {op['description']}\n"
-              f"{mask_card_number(op.get('from'))} -> {mask_card_number(op.get('to'))}\n")
+              f"{mask_card_number(op.get('from'))} -> {mask_card_number(op.get('to'))}\n"
+              f"{op['operationAmount']['amount']} {op['operationAmount']['currency']['name']}\n")
